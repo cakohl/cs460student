@@ -93,7 +93,7 @@ gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 const backgroundImage = new Image();
 const characterImage = new Image();
 
-backgroundImage.src = 'background.png'; 
+backgroundImage.src = '6.png'; 
 characterImage.src = 'player.png'; 
 
 let characterX = 100;
