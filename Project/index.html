@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2D WebGL Platformer</title>
+    <title>Technoviking</title>
     <style>
         body { margin: 0; overflow: hidden; }
         canvas { display: block; }
@@ -28,22 +28,15 @@
     renderer.setSize(window.innerWidth, window.innerHeight);
     
     // Create background
-    const backgroundTexture = new THREE.TextureLoader().load('background.png', onLoad, onProgress, onError);
+    const backgroundTexture = new THREE.TextureLoader().load('background.png', onLoad);
+    let background;
 
     function onLoad(texture) {
         const aspect = texture.image.width / texture.image.height;
         const backgroundMaterial = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
         const backgroundGeometry = new THREE.PlaneGeometry(canvas.width, canvas.width / aspect);
-        const background = new THREE.Mesh(backgroundGeometry, backgroundMaterial);
+        background = new THREE.Mesh(backgroundGeometry, backgroundMaterial);
         scene.add(background);
-    }
-
-    function onProgress(xhr) {
-        console.log((xhr.loaded / xhr.total * 100) + '% loaded');
-    }
-
-    function onError(err) {
-        console.error('An error occurred while loading the background texture.', err);
     }
 
     // Create player
