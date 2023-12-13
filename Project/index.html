@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Technoviking</title>
+    <title>2D WebGL Platformer</title>
     <style>
         body { margin: 0; overflow: hidden; }
         canvas { display: block; }
@@ -13,8 +13,8 @@
 
 <canvas id="gameCanvas"></canvas>
 
-<script src="https://threejs.org/build/three.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/Tween.min.js"></script>
+<script src="https://threejs.org/build/three.js"></script>
 <script>
     // Set up
     const canvas = document.getElementById("gameCanvas");
@@ -47,57 +47,8 @@
     player.position.set(100, 100, 0);
     scene.add(player);
 
-    // Player movement variables
-    const playerSpeed = 5;
-    const jumpHeight = 150;
-    let isJumping = false;
-
-    // Handle input
-    window.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("keyup", handleKeyUp);
-
-    function handleKeyDown(event) {
-        // Handle key down events
-        switch (event.code) {
-            case 'ArrowRight':
-                player.position.x += playerSpeed;
-                break;
-            case 'ArrowLeft':
-                player.position.x -= playerSpeed;
-                break;
-            case 'Space':
-                jump();
-                break;
-        }
-    }
-
-    function handleKeyUp(event) {
-        // Handle key up events
-    }
-
-    function jump() {
-        if (!isJumping) {
-            isJumping = true;
-            const initialY = player.position.y;
-            const jumpTween = new TWEEN.Tween(player.position)
-                .to({ y: initialY + jumpHeight }, 500)
-                .easing(TWEEN.Easing.Quadratic.Out)
-                .onComplete(() => {
-                    const fallTween = new TWEEN.Tween(player.position)
-                        .to({ y: initialY }, 500)
-                        .easing(TWEEN.Easing.Quadratic.In)
-                        .onComplete(() => {
-                            isJumping = false;
-                        })
-                        .start();
-                })
-                .start();
-        }
-    }
-
     // Game loop
     function gameLoop() {
-        TWEEN.update();
         update();
         render();
 
