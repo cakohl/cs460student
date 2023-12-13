@@ -14,6 +14,7 @@
 <canvas id="gameCanvas"></canvas>
 
 <script src="https://threejs.org/build/three.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/Tween.min.js"></script>
 <script>
     // Set up
     const canvas = document.getElementById("gameCanvas");
@@ -33,6 +34,7 @@
         const backgroundMaterial = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
         const backgroundGeometry = new THREE.PlaneGeometry(canvas.width, canvas.height);
         const background = new THREE.Mesh(backgroundGeometry, backgroundMaterial);
+        background.scale.set(2, 2, 1); // Adjust the scale as needed
         scene.add(background);
     }
 
@@ -44,20 +46,65 @@
         console.error('An error occurred while loading the background texture.', err);
     }
 
+    // Create player
+    const playerTexture = new THREE.TextureLoader().load('Idle.png');
+    const playerMaterial = new THREE.MeshBasicMaterial({ map: playerTexture, transparent: true });
+    const playerGeometry = new THREE.PlaneGeometry(50, 50);
+    const player = new THREE.Mesh(playerGeometry, playerMaterial);
+    player.position.set(100, 100, 0);
+    scene.add(player);
+
+    // Player movement variables
+    const playerSpeed = 5;
+    const jumpHeight = 150;
+    let isJumping = false;
+
     // Handle input
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
 
     function handleKeyDown(event) {
         // Handle key down events
+        switch (event.code) {
+            case 'ArrowRight':
+                player.position.x += playerSpeed;
+                break;
+            case 'ArrowLeft':
+                player.position.x -= playerSpeed;
+                break;
+            case 'Space':
+                jump();
+                break;
+        }
     }
 
     function handleKeyUp(event) {
         // Handle key up events
     }
 
+    function jump() {
+        if (!isJumping) {
+            isJumping = true;
+            const initialY = player.position.y;
+            const jumpTween = new TWEEN.Tween(player.position)
+                .to({ y: initialY + jumpHeight }, 500)
+                .easing(TWEEN.Easing.Quadratic.Out)
+                .onComplete(() => {
+                    const fallTween = new TWEEN.Tween(player.position)
+                        .to({ y: initialY }, 500)
+                        .easing(TWEEN.Easing.Quadratic.In)
+                        .onComplete(() => {
+                            isJumping = false;
+                        })
+                        .start();
+                })
+                .start();
+        }
+    }
+
     // Game loop
     function gameLoop() {
+        TWEEN.update();
         update();
         render();
 
@@ -66,8 +113,7 @@
 
     // Update game state
     function update() {
-        // Update player position based on velocity
-        // Add other game logic here
+        // Update other game logic here
     }
 
     // Render the game
