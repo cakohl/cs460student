@@ -31,10 +31,10 @@
     const backgroundTexture = new THREE.TextureLoader().load('background.png', onLoad, onProgress, onError);
 
     function onLoad(texture) {
+        const aspect = texture.image.width / texture.image.height;
         const backgroundMaterial = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
-        const backgroundGeometry = new THREE.PlaneGeometry(canvas.width, canvas.height);
+        const backgroundGeometry = new THREE.PlaneGeometry(canvas.width, canvas.width / aspect);
         const background = new THREE.Mesh(backgroundGeometry, backgroundMaterial);
-        background.scale.set(2, 2, 1); // Adjust the scale as needed
         scene.add(background);
     }
 
@@ -47,7 +47,7 @@
     }
 
     // Create player
-    const playerTexture = new THREE.TextureLoader().load('Idle.png');
+    const playerTexture = new THREE.TextureLoader().load('player.png');
     const playerMaterial = new THREE.MeshBasicMaterial({ map: playerTexture, transparent: true });
     const playerGeometry = new THREE.PlaneGeometry(50, 50);
     const player = new THREE.Mesh(playerGeometry, playerMaterial);
