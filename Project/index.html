@@ -24,7 +24,7 @@
     camera.position.z = 2;
 
     const renderer = new THREE.WebGLRenderer({ canvas: canvas });
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setSize(1200, 1000);
     
     // Create background
     const backgroundTexture = new THREE.TextureLoader().load('background.png', onLoad);
