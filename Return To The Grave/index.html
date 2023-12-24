@@ -235,10 +235,12 @@ window.onload = function() {
           music.pause();
           break;
         case 'ArrowLeft':
+          music.play();
           player.facingLeft = true;
           player.x -= player.speed;
           break;
         case 'ArrowRight':
+          music.play();
           player.facingLeft = false;
           player.x += player.speed;
           break;
