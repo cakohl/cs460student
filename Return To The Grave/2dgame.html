@@ -1,0 +1,597 @@
+
+
+
+<!DOCTYPE html>
+
+
+
+<html lang="en">
+<head>
+ <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+    <meta content="utf-8" http-equiv="encoding">
+  <title>Return To The Grave</title>
+  <style>
+    canvas {
+      display: block;
+      margin: 0 auto;
+      border: 1px solid #000; /* Add a border for better visibility */
+    }
+
+    #dialogueBox {
+        position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 10px;
+  background-color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+  font-size: 18px;
+    }
+
+    p {
+    text-align: center;
+    line-height: 5px;
+
+    }
+
+
+    #gameOverScreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      color: white;
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #gameWonScreen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        color: white;
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        }
+
+
+  </style>
+
+<script type="text/javascript" src="https://get.goxtk.com/xtk_edge.js"></script>
+<audio id="bulletSound" src="/Users/c/Downloads/mixkit-small-hit-in-a-game-2072.wav" preload="auto"></audio>
+<img id="enemyImage" src="/Users/c/Fire_Spirit/Idle.png" style="display:none;">
+<img id="portalImage" src="/Users/c/spr_portal_strip8.png" style="display:none;">
+<audio id="music" src="/Users/c/Downloads/neon-gaming-128925.mp3" preload="auto"></audio>
+<script src="loader.js"> </script>
+<script type="text/javascript">
+window.onload = function() {
+
+
+
+}
+</script>
+
+</head>
+<body>
+  <div id="dialogueBox"></div>
+  <canvas id="gameCanvas" width="800" height="600"></canvas>
+  <div id="instructions">
+    <p>Wake up, send netherworldly monsters to damnation, escape everlasting torment, 
+        and be back in bed by 8. See if God can't snatch up your SOUL before then!</p>
+    <p>Use arrow keys to move.</p>
+    <p>Press 'Space' to release Skeleton Orbs.</p>
+    <p>Press 'e' near NPCs to interact.</p>
+    <p>Press '.' to stop the music</p>
+
+    
+    
+  </div>
+
+  
+
+  <div id="gameOverScreen">
+    <h1>Game Over</h1>
+    <p>Press any key to restart</p>
+  </div>
+  
+  <div id="gameWonScreen">
+    <h1>Game Won</h1>
+    <p>YOU HAVE RETURNED TO YOUR GRAVE, CONGRATULATIONS.</p>
+    <!-- Add any additional content or styling as needed -->
+  </div>
+
+  <script type="module">
+
+    //
+    // You awake a skeleton - how perturbing! Will you accept God's grace 
+    // and float to Heaven, or stay in soil in your dank, deep grave? 
+    // The Mystery Awaits...
+    // 
+
+
+
+
+    const gameOverScreen = document.getElementById('gameOverScreen');
+
+
+    // Get the canvas and 2d context
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const dialogueBox = document.getElementById('dialogueBox');
+    const music = document.getElementById('music');
+
+    // Load background, player, and NPC images
+    const backgroundImage = new Image();
+    backgroundImage.src = '/Users/c/pang-xin-forest-bg.jpg'; 
+
+    const backgrounds = [
+      '/Users/c/pang-xin-forest-bg.jpg', // Level 0 background
+      '/Users/c/10.png',  // Level 1 background
+      '/Users/c/Summer4.png',
+      '/Users/c/scary-night-cemetery-tombstone-religious-260nw-2191165109.webp',
+    ];
+
+
+  const enemyImage = document.getElementById('enemyImage');
+
+  
+
+  
+
+    const playerImage = new Image();
+    playerImage.src = '/Users/c/Skeleton/Walk.png'; 
+
+    const npcImage = new Image();
+    npcImage.src = '/Users/c/Plent/Idle.png'; 
+
+    // Game entities
+    const player = {
+      x: canvas.width / 5,
+      y: canvas.height / 2,
+      width: 200,
+      height: 200,
+      speed: 18,
+
+      // Frames animation
+      frameIndex: 0, 
+      frames: 8,     
+
+      frameWidth: 128, // Width and height specific to image
+      frameHeight: 150,
+
+      frameChangeDelay: 10, // Number of frames to wait before changing to the next frame 
+      frameChangeCounter: 0,
+
+      facingLeft: false // Flag to track player's facing direction
+
+    };
+
+    // Portals for each level
+    const portals = [
+      { level: 0, x: 600, y: 50, width: 60, height: 60, destinationLevel: 1 },
+      { level: 1, x: 700, y: 500, width: 80, height: 80, destinationLevel: 2 },
+      { level: 2, x: 700, y: 50, width: 80, height: 80, destinationLevel: 3 },
+      { level: 3, x: 600, y: 800, width: 100, height: 100, destinationLevel: 4 },
+    ];
+    
+
+
+    const enemies = [
+    { level: 1, x: 700, y: 200, width: 50, height: 50 }, // Level 0 enemy
+    { level: 2, x: 200, y: 100, width: 40, height: 40 }, // Level 1 enemy
+    { level: 3, x: 500, y: 100, width: 60, height: 60 },
+    { level: 4, x: 500, y: 50, width: 60, height: 60 },
+    { level: 4, x: 100, y: 300, width: 60, height: 60 },  // Level 2 enemy
+    // Add more enemies for additional levels
+  ];
+
+    const npc = {
+      x: canvas.width / 1.7,
+      y: canvas.height / 4,
+      width: 0,
+      height: 0,
+      dialogue: "A'Hoy Matie!",
+    };
+
+    let currentLevel = 0;
+
+    const bullets = [];
+
+    // Dialogue state
+    let inDialogue = false;
+    let showTalkMessage = false;
+    const narrator = {
+        dialogue: [
+        "Welcome back newly risen one... Approach the portal...",
+        "Vaporizing abyssal creatures is in fact mandatory, so, go on.",
+        "Well... This is surprisingly picturesque.",
+        "This city of sin won't let you leave!",
+        "B0nes sink... and you haven't any air, hehuahah"
+        ]
+    };
+
+    let currentNarratorLine = 0;
+
+
+
+
+
+    // Handle keyboard input
+    window.addEventListener('keydown', (e) => {
+      switch (e.key) {
+        case ';':
+          music.play();
+          break;
+        case '.':
+          music.pause();
+          break;
+        case 'ArrowLeft':
+          player.facingLeft = true;
+          player.x -= player.speed;
+          break;
+        case 'ArrowRight':
+          player.facingLeft = false;
+          player.x += player.speed;
+          break;
+        case 'ArrowUp':
+          player.y -= player.speed;
+          break;
+        case 'ArrowDown':
+          player.y += player.speed;
+          break;
+        case ' ':
+           // Fire a bullet
+            bullets.push({
+                x: player.x + player.width / 2,
+                y: player.y + player.height / 2,
+                speed: 8,
+                angle: player.facingLeft ? Math.PI : 0,
+                radius: 5,
+            });
+
+            const bulletSound = document.getElementById('bulletSound');
+            bulletSound.currentTime = 0; // Reset the audio to the beginning
+            bulletSound.play();
+
+            break;
+        case 'z':
+          if (player.swordCooldown === 0) {
+            performMeleeAttack();
+          }
+          break;
+          case 'e':
+          // Check if the player is close to an NPC and not in dialogue
+          if (!inDialogue) {
+            const clickedNPC = npcs[currentLevel];
+            const distance = Math.sqrt(
+              Math.pow(player.x - clickedNPC.x, 2) + Math.pow(player.y - clickedNPC.y, 2)
+            );
+
+            if (distance < 30) {
+              // Player is close to NPC, initiate dialogue
+              inDialogue = true;
+            }
+          }
+          break;
+      }
+    });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // Update function
+    function update() {
+
+
+        // Update bullets
+        bullets.forEach(bullet => {
+            bullet.x += bullet.speed * Math.cos(bullet.angle);
+            bullet.y += bullet.speed * Math.sin(bullet.angle);
+        });
+
+
+        // Update enemy bullets
+        enemies.forEach(enemy => {
+
+            if (enemy.level === currentLevel) {
+            // Add logic to determine when the enemy should shoot
+            // For example, you can use a timer or some condition
+
+            // If the enemy should shoot, create a bullet
+            const shouldShoot = Math.random() < 0.02; // Adjust the probability as needed
+
+            if (shouldShoot) {
+            const angleToPlayer = Math.atan2(player.y - enemy.y, player.x - enemy.x);
+
+            bullets.push({
+                x: enemy.x + enemy.width / 2,
+                y: enemy.y + enemy.height / 2,
+                speed: 3, // Adjust the bullet speed as needed
+                angle: angleToPlayer,
+                radius: 5,
+                isEnemyBullet: true, // Add a flag to distinguish enemy bullets
+            });
+            }
+        }
+        });
+
+        bullets.forEach((bullet, index) => {
+            const isPlayerBullet = !bullet.isEnemyBullet;
+            const distanceToPlayer = Math.sqrt(
+                Math.pow(player.x - bullet.x, 2) + Math.pow(player.y - bullet.y, 2)
+            );
+
+            const playerHit = distanceToPlayer < player.width / 2 + bullet.radius;
+
+
+            
+            if (isPlayerBullet && playerHit) {
+                // Player hit by a bullet, handle player death
+                playerDeath();
+                bullets.splice(index, 1);
+            } else if (!isPlayerBullet && playerHit) {
+                // Enemy bullet hit, handle accordingly (if needed)
+                // For now, let's just remove the bullet
+                bullets.splice(index, 1);
+            }
+        });
+
+        // Remove bullets that are out of bounds
+        bullets.forEach((bullet, index) => {
+            if (bullet.y < 0 || bullet.y > canvas.height || bullet.x < 0 || bullet.x > canvas.width) {
+            bullets.splice(index, 1);
+            }
+        });
+
+        
+
+        // Player frame animation
+      player.frameChangeCounter++;
+      if (player.frameChangeCounter >= player.frameChangeDelay) {
+        player.frameIndex++;
+        if (player.frameIndex >= player.frames) {
+          player.frameIndex = 0;
+        }
+        player.frameChangeCounter = 0;
+      }
+
+      // Check if player is close to NPC
+      const distance = Math.sqrt(
+        Math.pow(player.x - npc.x, 2) + Math.pow(player.y - npc.y, 2)
+      );
+
+      if (distance < 30) {
+        // Player is close to NPC, handle interaction
+        console.log('Player is close to NPC!');
+      }
+
+      portals.forEach(portal => {
+        if (portal.level === currentLevel) {
+            if (
+            player.x < portal.x + portal.width &&
+            player.x + player.width > portal.x &&
+            player.y < portal.y + portal.height &&
+            player.y + player.height > portal.y
+            ) {
+            // Player entered the portal, update the current level
+            currentLevel = portal.destinationLevel;
+            resetPlayerPosition(); // You might want to reset the player's position
+            }
+        }
+            
+      });
+
+      
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+// Draw function
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+
+  // Draw the background based on the current level
+  const currentBackground = new Image();
+  currentBackground.src = backgrounds[currentLevel];
+  ctx.drawImage(currentBackground, 0, 0, canvas.width, canvas.height);
+
+  // Draw the enemy for the current level
+  const currentEnemy = enemies[currentLevel];
+
+  enemies.forEach(enemy => {
+        if (enemy.level === currentLevel) {
+  ctx.drawImage(enemyImage, enemy.x, enemy.y, enemy.width, enemy.height);
+        }
+    });
+
+
+  ctx.save();
+  ctx.translate(player.x + player.width / 2, player.y + player.height / 2);
+
+  // Flip the canvas horizontally if facing left
+  if (player.facingLeft) {
+    ctx.scale(-1, 1);
+  }
+
+  // Draw the current frame of the player animation
+  ctx.drawImage(
+    playerImage,
+    player.frameIndex * player.frameWidth,
+    0,
+    player.frameWidth,
+    player.frameHeight,
+    -player.width / 2, // Adjust the x-coordinate for centering
+    -player.height / 2, // Adjust the y-coordinate for centering
+    player.width,
+    player.height
+  );
+
+
+  // Restore the canvas state after drawing the player
+  ctx.restore();
+
+  // Draw the NPC
+  ctx.drawImage(npcImage, npc.x, npc.y, npc.width, npc.height);
+
+  // Draw bullets
+  bullets.forEach(bullet => {
+    ctx.beginPath();
+    ctx.arc(bullet.x, bullet.y, bullet.radius, 0, Math.PI * 2);
+    ctx.fillStyle = '#00db3a';
+    ctx.fill();
+    ctx.closePath();
+  });
+
+    const boxHeight = 100; // Adjust the height based on your preference
+    const padding = 10;
+    const boxTop = canvas.height - boxHeight - padding;
+
+
+  if (inDialogue) {
+    // Render dialogue box or text
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+  ctx.fillRect(padding, boxTop, canvas.width - 2 * padding, boxHeight);
+    ctx.fillStyle = '#000';
+    ctx.font = '20px Garamond';
+    ctx.fillText(`NPC: ${npc.dialogue}`, 70, 550);
+  }
+  else {
+        // Display narrator dialogue
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+  ctx.fillRect(padding, boxTop, canvas.width - 2 * padding, boxHeight);
+        ctx.fillStyle = '#000';
+        ctx.font = '20px Times New Roman';
+        ctx.fillText(`Narrator: ${narrator.dialogue[currentNarratorLine]}`, 70, 550);
+  }
+
+
+  
+      // Draw portals
+      portals.forEach(portal => {
+    if (portal.level === currentLevel) {
+      ctx.drawImage(portalImage, portal.x, portal.y, portal.width, portal.height);
+    }
+  });
+
+}
+
+function playerDeath() {
+  console.log('Player died!');
+  resetPlayerPosition();
+
+  // Show the game over screen
+  gameOverScreen.style.display = 'flex';
+
+  // Define an array of game over messages
+  const gameOverMessages = [
+    "Alas! The skeletal adventurer met a grim fate.",
+    "You fought bravely, but the netherworld claimed another soul.",
+    "In the end, death is but a brief respite for the undead.",
+    "The shadows whisper tales of your demise.",
+  ];
+
+  const randomIndex = Math.floor(Math.random() * gameOverMessages.length);
+  const randomMessage = gameOverMessages[randomIndex];
+
+  // Display the chosen message
+  gameOverScreen.querySelector('h1').innerText = "Game Over";
+  gameOverScreen.querySelector('p').innerText = randomMessage;
+
+  setTimeout(() => {
+    // Hide the game over screen after 5 seconds
+    gameOverScreen.style.display = 'none';
+
+    resetGame();
+  }, 5000);
+}
+
+
+
+// Reset player position when entering a portal
+function resetPlayerPosition() {
+      player.x = canvas.width / 7;
+      player.y = canvas.height / 2;
+
+
+       // Check if the player has reached the final portal
+            if (currentLevel === portals.length - 1) {
+                // Show the game won screen
+                const gameWonScreen = document.getElementById('gameWonScreen');
+                gameWonScreen.style.display = 'flex';
+
+                // You can add any additional logic or content here
+            } else {
+      currentNarratorLine++;
+
+
+
+    }
+}
+
+
+
+
+
+     // Function to reset the game
+     function resetGame() {
+      // Hide the game over screen
+      gameOverScreen.style.display = 'none';
+
+
+      currentLevel = 0;
+      currentNarratorLine = 0;
+      // Reset other game elements as needed
+    }
+
+
+
+
+
+
+    // Game loop
+    function gameLoop() {
+      update();
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+
+    // Start the game loop
+    gameLoop();
+  </script>
+</body>
+</html>
